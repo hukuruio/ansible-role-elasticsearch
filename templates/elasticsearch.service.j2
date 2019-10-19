@@ -5,8 +5,8 @@ After=docker.service
 
 [Service]
 Restart=always
-User={{ elasticsearch_user }}
-Group={{ elasticsearch_user }}
+User=root
+Group=elasticsearch
 # Shutdown container (if running) when unit is stopped
 ExecStartPre=-/usr/local/bin/docker-compose -f {{ elasticsearch_home_dir }}/docker-compose.yml down
 # Start container when unit is started

@@ -2,8 +2,6 @@
 - name: Converge
   hosts: all
   become: true
-  vars:
-    docker_users: ['elasticsearch']
   roles:
     - ansible-role-docker
     - ansible-role-elasticsearch
