@@ -1,0 +1,7 @@
+---
+# handlers file for ansible-role-elasticsearch
+
+- name: restart elasticsearch
+  service: 
+    name: "{{ elasticsearch_service_name }}"
+    state: "{{ elasticsearch_restart_handler_state }}"

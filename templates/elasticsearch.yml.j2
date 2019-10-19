@@ -1,0 +1,9 @@
+cluster.name: {{ elasticsearch_cluster_name }}
+path.data: {{ elasticsearch_path_data }}
+
+bootstrap.memory_lock: {{ elasticsearch_memory_lock }}
+network.host: {{ elasticsearch_network_host }}
+http.port: {{ elasticsearch_http_port }}
+
+discovery.zen.ping.unicast.hosts: {{ elasticsearch_discovery_hosts }}
+discovery.zen.minimum_master_nodes: {{ elasticsearch_minimum_master_nodes }}

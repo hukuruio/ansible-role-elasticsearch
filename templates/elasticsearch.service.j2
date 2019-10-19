@@ -1,0 +1,18 @@
+[Unit]
+Description=ElasticSearch
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+User={{ elasticsearch_user }}
+Group={{ elasticsearch_user }}
+# Shutdown container (if running) when unit is stopped
+ExecStartPre=-/usr/local/bin/docker-compose -f {{ elasticsearch_home_dir }}/docker-compose.yml down
+# Start container when unit is started
+ExecStart=/usr/local/bin/docker-compose -f {{ elasticsearch_home_dir }}/docker-compose.yml up
+# Stop container when unit is stopped
+ExecStop=-/usr/local/bin/docker-compose -f {{ elasticsearch_home_dir }}/docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,102 @@
+---
+# tasks file for ansible-role-elasticsearch
+
+- name: Ensure elasticsearch group exists
+  group:
+    name: "{{ elasticsearch_user }}"
+    gid: "{{ elasticsearch_user_uid }}"
+    state: present
+
+- name: Ensure elasticsearch user exists
+  user:
+    name: "{{ elasticsearch_user }}"
+    comment: elasticsearch service account
+    uid: "{{ elasticsearch_user_uid }}"
+    group: "{{ elasticsearch_user }}"
+    home: "{{ elasticsearch_home_dir }}"
+
+- name: create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_user }}"
+    mode: 0770
+  with_items:
+    - "{{ elasticsearch_home_dir }}"
+    - "{{ elasticsearch_config_dir }}"
+    - "{{ elasticsearch_path_data }}"
+
+- sysctl:
+    name: vm.max_map_count
+    value: "262144"
+    state: present
+    sysctl_file: /etc/sysctl.d/elasticsearch.conf
+
+- name: nofile limit for the user elasticsearch
+  pam_limits:
+    domain: "{{ elasticsearch_user }}"
+    limit_type: "-"
+    limit_item: nofile
+    value: "65536"
+  notify:
+    - restart elasticsearch
+
+- name: memlock, both soft and hard, limit user elasticsearch.
+  pam_limits:
+    domain: "{{ elasticsearch_user }}"
+    limit_type: '-'
+    limit_item: memlock
+    value: unlimited
+  notify:
+    - restart elasticsearch
+
+- name: elasticsearch config file
+  template:
+    src: elasticsearch.yml.j2
+    dest: "{{ elasticsearch_config_file }}"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_user }}"
+    mode: 0660
+  notify:
+    - restart elasticsearch
+
+- name: elasticsearch docker-compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_compose_file }}"
+    owner: "{{ elasticsearch_user }}"
+    group: "{{ elasticsearch_user }}"
+    mode: 0660
+  notify:
+    - restart elasticsearch
+
+- name: elasticsearch systemd service file
+  template:
+    src: elasticsearch.service.j2
+    dest: "/etc/systemd/system/{{ elasticsearch_service_name }}.service"
+    mode: 0660
+  register: elasticsearch_service_file_updated
+  
+- name: Reload systemd daemon
+  systemd:
+    name: "{{ elasticsearch_service_name }}"
+    daemon_reload: true
+    state: "{{ elasticsearch_restart_handler_state }}"
+  when: elasticsearch_service_file_updated is changed
+
+- name: Force a restart if configuration has changed
+  meta: flush_handlers
+
+- name: Start Elasticsearch.
+  service:
+    name: "{{ elasticsearch_service_name }}"
+    state: "{{ elasticsearch_service_state }}"
+    enabled: "{{ elasticsearch_service_enabled }}"
+
+- name: Make sure Elasticsearch is running before proceeding
+  wait_for:
+    host: "{{ elasticsearch_network_host }}"
+    port: "{{ elasticsearch_http_port }}"
+    delay: 3
+    timeout: 300

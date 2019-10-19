@@ -1,0 +1,26 @@
+---
+# defaults file for ansible-role-elasticsearch
+elasticsearch_image: hukuruio/elasticsearch-5:latest
+
+elasticsearch_service_name: elasticsearch
+elasticsearch_service_state: started
+elasticsearch_restart_handler_state: restarted
+elasticsearch_service_enabled: true
+
+elasticsearch_home_dir: /usr/share/elasticsearch
+elasticsearch_config_dir: "{{ elasticsearch_home_dir }}/config"
+elasticsearch_config_file: "{{ elasticsearch_config_dir }}/elasticsearch.yml"
+docker_compose_file: "{{ elasticsearch_home_dir }}/docker-compose.yml"
+
+elasticsearch_user: elasticsearch
+elasticsearch_user_uid: 3999
+elasticsearch_jvm_heapsize: "1g"
+
+# config
+elasticsearch_network_host: 0.0.0.0
+elasticsearch_http_port: 9200
+elasticsearch_memory_lock: "true"
+elasticsearch_cluster_name: test
+elasticsearch_path_data: "{{ elasticsearch_home_dir }}/data"
+elasticsearch_discovery_hosts: ['127.0.0.1']
+elasticsearch_minimum_master_nodes: 1
